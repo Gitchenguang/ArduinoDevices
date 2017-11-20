@@ -1,5 +1,7 @@
 #include"PCA9685.h"
 
+uint8_t PCA9685::RegArray[256]={0};
+
 PCA9685::PCA9685(uint8_t DevAddr = 0x40 ){
 	Address = DevAddr;
 	Freq = 500.0;
@@ -36,22 +38,23 @@ void PCA9685::PCA9685Init(){
 	RegArray[Mode1Reg] = 0x30; // 进入睡眠状态以更改频率
 	WriteReg(Mode1Reg,RegArray[Mode1Reg]);
 
-
 	WriteReg(Prescalar,RegArray[Prescalar]);
 
 	RegArray[Mode1Reg] = 0x20; // 唤醒
-	WriteReg(Mode1Reg,RegArray[Mode1Reg]);
-
-	//RegArray[ Mode1Reg ] = 0x00; // disable AI;
-	//Wire.beginTransmission( Address );
-	//Wire.write( Mode1Reg );
-	//Wire.write( RegArray[ Mode1Reg ] );
-	//Wire.endTransmission();	
+	WriteReg(Mode1Reg,RegArray[Mode1Reg]);	
 	
 }
 
 uint8_t PCA9685::ReadReg( uint8_t TargetReg ){
-	return RegArray[ TargetReg ];
+	Wire.beginTransmission( Address );
+	Wire.write( TargetReg );
+	Wire.endTransmission();	
+
+	Wire.requestFrom( (int)Address , (int)1 );
+	while( !Wire.available() ){
+
+	}
+	return( Wire.read() );
 }
 void PCA9685::WriteReg( uint8_t TargetReg , uint8_t Dat ){
 	RegArray[ TargetReg ] = Dat;
@@ -65,14 +68,14 @@ void PCA9685::WriteMode1( uint8_t Dat ){
 	WriteReg(Mode1Reg, Dat);
 }
 uint8_t PCA9685::ReadMode1(){
-	return RegArray[ Mode1Reg ];
+	return( RegArray[Mode1Reg] );
 }
 
 void PCA9685::WriteMode2(uint8_t Dat ){
 	WriteReg(Mode2Reg, Dat);
 }
 uint8_t PCA9685::ReadMode2(){
-	return RegArray[ Mode2Reg ];
+	return( RegArray[Mode2Reg] );
 }
 
 void PCA9685::WriteLed( uint8_t LedChannel , uint16_t LedOn , uint16_t LedOff ){
@@ -92,10 +95,10 @@ void PCA9685::WriteLed( uint8_t LedChannel , uint16_t LedOn , uint16_t LedOff ){
 }
 uint16_t PCA9685::ReadLed( uint8_t LedChannel , bool Status ){
 	uint8_t LedIndex = LedOffset + LedChannel*LedSpace;
-	if( Status == 0 ){
-		return( ((uint16_t)RegArray[ LedIndex + LedOn_L ]) + (((uint16_t)RegArray[ LedIndex + LedOn_H ])<<8) );
+	if( Status == true ){
+		return( (((uint16_t)RegArray[LedIndex + LedOn_H])<<8) + (uint16_t)RegArray[LedIndex + LedOn_L] );
 	}else{
-		return( ((uint16_t)RegArray[ LedIndex + LedOff_L]) + (((uint16_t)RegArray[ LedIndex + LedOff_H ])<<8) );
+		return( (((uint16_t)RegArray[LedIndex + LedOff_H])<<8) + (uint16_t)RegArray[LedIndex + LedOff_L] );
 	}
 }
 
@@ -103,11 +106,10 @@ void PCA9685::SetFreq( double f ){
 	Freq = f;
 	RegArray[Prescalar] = (uint8_t)(25000000.0/(4096.0*Freq)); // 设置频率为500Hz
 	uint8_t restartflag = 0;
-	
-	RegArray[Mode1Reg] = 0x30; // 进入睡眠状态以更改频率
-	WriteReg(Mode1Reg,RegArray[Mode1Reg]);
+    // 进入睡眠状态以更改频率
+	WriteReg(Mode1Reg,RegArray[Mode1Reg]|SleepMask);
 	WriteReg(Prescalar,RegArray[Prescalar]);
-	RegArray[Mode1Reg] = 0x20; // Clear Sleep bit	
+	// Clear Sleep bit	
 	WriteReg(Mode1Reg,RegArray[Mode1Reg]);
 	delay(1);
 
@@ -120,14 +122,14 @@ void PCA9685::SetFreq( double f ){
 
 	}
 	restartflag = Wire.read();
-	if( restartflag & RestartMask ){
-		RegArray[Mode1Reg] = 0x20; 
+	if( restartflag & RestartMask ){ 
 		WriteReg(Mode1Reg,RegArray[Mode1Reg]| RestartMask);
 	}
 	
 }
 double PCA9685::ReadFreq(){
-	return Freq;
+	ReadReg( Prescalar );
+	return( 25000000.0/(4096.0*((double)RegArray[Prescalar])));
 }
 
 void PCA9685::SetLedLow( uint8_t LedChannel ){

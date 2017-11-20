@@ -4,11 +4,11 @@
 
 class PCA9685{
 uint8_t Address;
-uint8_t RegArray[256]={0};
 double Freq;
 
 public:
 //一些public 变量
+	static uint8_t RegArray[256];
 // 程序中有Led的函数可以认为是PCA9685的一个输出Port
 	const uint8_t Mode1Reg = 0;
 	const uint8_t Mode2Reg = 1;
