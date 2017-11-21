@@ -6,6 +6,12 @@ PCA9685::PCA9685(uint8_t DevAddr = 0x40 ){
 	Address = DevAddr;
 	Freq = 500.0;
 }
+
+PCA9685::PCA9685( ){
+	Address = 0x40;
+	Freq = 500.0;
+}
+
 PCA9685::~PCA9685( ){
 
 }
@@ -128,7 +134,6 @@ void PCA9685::SetFreq( double f ){
 	
 }
 double PCA9685::ReadFreq(){
-	ReadReg( Prescalar );
 	return( 25000000.0/(4096.0*((double)RegArray[Prescalar])));
 }
 

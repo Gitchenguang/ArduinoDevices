@@ -1,3 +1,5 @@
+#ifndef ADS1115_H
+#define ADS1115_H
 #include"Arduino.h"
 #include"Wire.h"
 
@@ -86,4 +88,4 @@ public:
 	uint16_t ReadConfigReg();
 	
 };
-
+#endif

@@ -1,3 +1,6 @@
+#ifndef PCA9685_H
+#define PCA9685_H
+
 #include"Arduino.h"
 #include"Wire.h"
 //PCA9685 /OE端直接接地 
@@ -39,6 +42,7 @@ public:
 	const uint8_t OUTEMask = 0x03;   // default 00: /OE=1,Output drivers not enabled. LEDn=0;其它情况和输出的驱动结构有关,具体看datasheet
 
 public:
+	PCA9685(  );
 	PCA9685( uint8_t DevAddr );
 	~PCA9685( );
 
@@ -63,4 +67,4 @@ public:
 	void SetLedHigh( uint8_t LedChannel );
 };
 
-
+#endif
