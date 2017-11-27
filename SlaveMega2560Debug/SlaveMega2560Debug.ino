@@ -5,7 +5,7 @@
 #include <PCA9685.h>
 #include <TECDriver.h>
 
-//#define DEBUG
+#define DEBUG
 
 // 系统全局变量
 unsigned char SysState = 0;
@@ -48,26 +48,26 @@ uint16_t CellGap = 100;  //默认的gap
 uint16_t CellThreshHold = 1;
 double CellThreshHoldDouble = CellThreshHold/double(ThreshHoldScale);  //8 ADS1115对于电压的最小分辨率为0.125mV，PID的输入输出以mV为单位，这里除以8即可
 uint16_t CellGivenADC = 19920; 
-double CellPIDParams_Heating[3] = { 2.7 , 0.00015 ,0.0009  };
-double CellPIDParams_Cooling[3] = { 2.7 , 0.00015 ,0.0009  };
-double CellPIDAggParams_Heating[3] = { 2.7 , 0.001 ,0.0009 };
-double CellPIDAggParams_Cooling[3] = { 2.7 , 0.001 ,0.0009 };
+double CellPIDParams_Heating[3] = { 2.7 , 0.001 ,0.008 };
+double CellPIDParams_Cooling[3] = { 2.7 , 0.001 ,0.008 };
+double CellPIDAggParams_Heating[3] = { 2.7 , 0.0001 ,0.001 };
+double CellPIDAggParams_Cooling[3] = { 2.7 , 0.0001 ,0.001 };
 double CellPIDInput,CellPIDOutput_Cooling,CellPIDOutput_Heating, CellSetPoint = (double)(CellGivenADC*Scale);
-PID CellPID_Heating(&CellPIDInput, &CellPIDOutput_Heating, &CellSetPoint, CellPIDParams_Heating[Kp], CellPIDParams_Heating[Ki], CellPIDParams_Heating[Kd], REVERSE);
-PID CellPID_Cooling(&CellPIDInput, &CellPIDOutput_Cooling, &CellSetPoint, CellPIDParams_Cooling[Kp], CellPIDParams_Cooling[Ki], CellPIDParams_Cooling[Kd], DIRECT);
+PID CellPID_Heating(&CellPIDInput, &CellPIDOutput_Heating, &CellSetPoint, CellPIDParams_Heating[Kp], CellPIDParams_Heating[Ki], CellPIDParams_Heating[Kd], DIRECT);
+PID CellPID_Cooling(&CellPIDInput, &CellPIDOutput_Cooling, &CellSetPoint, CellPIDParams_Cooling[Kp], CellPIDParams_Cooling[Ki], CellPIDParams_Cooling[Kd], REVERSE);
 //---PrismPID Parameters
 uint8_t PrismAdaptiveFlag= 0;
 uint16_t PrismGap =100;
 uint16_t PrismThreshHold = 1;
 double PrismThreshHoldDouble = PrismThreshHold/double(ThreshHoldScale);
 uint16_t PrismGivenADC = 19920;
-double PrismPIDParams_Heating[3] = { 2.7 , 0.00015 ,0.0009  };
-double PrismPIDParams_Cooling[3] = { 2.7 , 0.00015 ,0.0009  };
+double PrismPIDParams_Heating[3] = { 2.7 , 0.001 ,0.008 };
+double PrismPIDParams_Cooling[3] = { 2.7 , 0.001 ,0.008 };
 double PrismPIDAggParams_Heating[3] = { 2.7 , 0.001 ,0.001 };
 double PrismPIDAggParams_Cooling[3] = { 2.7 , 0.001 ,0.001 };
 double PrismPIDInput,PrismPIDOutput_Cooling,PrismPIDOutput_Heating, PrismSetPoint=(double)(PrismGivenADC*Scale);
-PID PrismPID_Heating(&PrismPIDInput, &PrismPIDOutput_Heating, &PrismSetPoint, PrismPIDParams_Heating[Kp], PrismPIDParams_Heating[Ki], PrismPIDParams_Heating[Kd], REVERSE);
-PID PrismPID_Cooling(&PrismPIDInput, &PrismPIDOutput_Cooling, &PrismSetPoint, PrismPIDParams_Cooling[Kp], PrismPIDParams_Cooling[Ki], PrismPIDParams_Cooling[Kd], DIRECT);
+PID PrismPID_Heating(&PrismPIDInput, &PrismPIDOutput_Heating, &PrismSetPoint, PrismPIDParams_Heating[Kp], PrismPIDParams_Heating[Ki], PrismPIDParams_Heating[Kd], DIRECT);
+PID PrismPID_Cooling(&PrismPIDInput, &PrismPIDOutput_Cooling, &PrismSetPoint, PrismPIDParams_Cooling[Kp], PrismPIDParams_Cooling[Ki], PrismPIDParams_Cooling[Kd], REVERSE);
 
 // WaterBoxPID Parameters(注：对于水槽温控的设置，这里将其与流室/棱镜部分的设置进行了分离，单独进行控制)
 // WaterBox的工作方式与 Cell 和 Prism不同，WaterBox拥有自己的启动标志位进行温度控制的启停，不和Cell还有Prism一同受控制
@@ -77,8 +77,8 @@ uint16_t WaterBoxGap = 100;
 uint16_t WaterBoxThreshHold = 1;
 uint16_t WaterBoxGivenADC = 19920;
 double WaterBoxThreshHoldDouble = WaterBoxThreshHold/double( ThreshHoldScale );
-double WaterBoxPIDParams_Heating[3] = { 2.7 , 0.00015 ,0.0009 };
-double WaterBoxPIDParams_Cooling[3] = { 2.7 , 0.00015 ,0.0009 };
+double WaterBoxPIDParams_Heating[3] = { 2.7 , 0.001 ,0.008 };
+double WaterBoxPIDParams_Cooling[3] = { 2.7 , 0.001 ,0.008 };
 double WaterBoxPIDAggParams_Heating[3] = { 2.7 , 0.001 ,0.001 };
 double WaterBoxPIDAggParams_Cooling[3] = { 2.7 , 0.001 ,0.001 };
 double WaterBoxPIDInput,WaterBoxPIDOutput_Cooling,WaterBoxPIDOutput_Heating, WaterBoxSetPoint=(double)(WaterBoxGivenADC*Scale);
@@ -101,7 +101,7 @@ void setup() {
   double tmp;
   tmp = EEPROM.get(0,tmp);
   unsigned int add=0;
-  if( tmp == 0.0 ){
+  if( tmp== 0.0 ){
       EEPROM.put(add,CellPIDParams_Heating);
       add+=sizeof(CellPIDParams_Heating);
       EEPROM.put(add,CellPIDParams_Cooling);
@@ -209,7 +209,6 @@ void setup() {
   //Modules:
   pinMode( Pump , OUTPUT );
   Serial.begin(115200);
-  Serial1.begin(115200);
   MyAds1115.AdsBegin();
   MyAds1115.ConfigAds1115(AdsConfig);
   
@@ -274,16 +273,17 @@ void loop() {
   uint32_t Param_Buff[3]={0};
   double Param_Buff_D[3]={0};      
   while(1){
-    if(Serial1.available()){
+    if(Serial.available()){
       lastSysState = SysState;
-      SysState = Serial1.read();
+      SysState = Serial.read();
       if( SysState ==0 ){
         CellTempDriver.Idle();
         PrismTempDriver.Idle();
+        WaterBoxWorkingFlag = 0;
       }
       if( SysState == 1){
-        while(!Serial1.available()){};
-        Speed = Serial1.read();
+        while(!Serial.available()){};
+        Speed = Serial.read();
         if( Speed == 0 ){
           noTone( Pump );
           #ifdef DEBUG
@@ -298,40 +298,40 @@ void loop() {
         SysState = lastSysState;
       }
       if( SysState == 2){
-        while( 2>Serial1.available() ){}
-        CellGivenADC=Serial1.read();
-        CellGivenADC=(CellGivenADC<<8)|Serial1.read();  
+        while( 2>Serial.available() ){}
+        CellGivenADC=Serial.read();
+        CellGivenADC=(CellGivenADC<<8)|Serial.read();  
         PrismGivenADC = CellGivenADC;
         CellSetPoint = (double)(CellGivenADC*Scale);
         PrismSetPoint = (double)(PrismGivenADC*Scale);
         SysState = lastSysState;
       }  
       if( SysState == 3){
-        while( 4>Serial1.available() ){}
-        CellGivenADC=Serial1.read();
-        CellGivenADC=(CellGivenADC<<8)|Serial1.read();  
-        PrismGivenADC = Serial1.read();
-        PrismGivenADC = (PrismGivenADC<<8)|Serial1.read(); 
+        while( 4>Serial.available() ){}
+        CellGivenADC=Serial.read();
+        CellGivenADC=(CellGivenADC<<8)|Serial.read();  
+        PrismGivenADC = Serial.read();
+        PrismGivenADC = (PrismGivenADC<<8)|Serial.read(); 
         CellSetPoint = (double)(CellGivenADC*Scale);
         PrismSetPoint = (double)(PrismGivenADC*Scale);
         SysState = lastSysState;
       }
       if( SysState == 40 ){ //设定水箱目标温度
-        while( 2 > Serial1.available() ){}
-        WaterBoxGivenADC = Serial1.read();
-        WaterBoxGivenADC = ( WaterBoxGivenADC<<8)|Serial1.read();
+        while( 2 > Serial.available() ){}
+        WaterBoxGivenADC = Serial.read();
+        WaterBoxGivenADC = ( WaterBoxGivenADC<<8)|Serial.read();
         WaterBoxSetPoint = ( double )( WaterBoxGivenADC*Scale );
         SysState = lastSysState;
       }
       if(SysState == 11){
-        while( 13>Serial1.available() ){}
-        eeAddress = Serial1.read();
+        while( 13>Serial.available() ){}
+        eeAddress = Serial.read();
         eeAddress = eeAddress*sizeof( Param_Buff_D );
         for(i=0;i<3;i++){
-            Param_Buff[i]=Serial1.read();
-            Param_Buff[i]=( Param_Buff[i]<<8)|Serial1.read();
-            Param_Buff[i]=( Param_Buff[i]<<8)|Serial1.read();
-            Param_Buff[i]=( Param_Buff[i]<<8)|Serial1.read();
+            Param_Buff[i]=Serial.read();
+            Param_Buff[i]=( Param_Buff[i]<<8)|Serial.read();
+            Param_Buff[i]=( Param_Buff[i]<<8)|Serial.read();
+            Param_Buff[i]=( Param_Buff[i]<<8)|Serial.read();
             Param_Buff_D[i] = (double)(Param_Buff[i])/PIDparamScale; // 直接传double类型不容易，这里传一个32bit的整数，然后除以65536，可以获得0-65536之间的double类型
         }
         EEPROM.put( eeAddress , Param_Buff_D );
@@ -373,17 +373,17 @@ void loop() {
         SysState = lastSysState;
       }  
       if( SysState == 12 ){   //打印各个参数用的
-        while( !Serial1.available()){};
-        eeAddress = Serial1.read();
+        while( !Serial.available()){};
+        eeAddress = Serial.read();
         eeAddress = eeAddress*sizeof( Param_Buff_D );
         EEPROM.get( eeAddress , Param_Buff_D );
-        for(i=0;i<3;i++)Serial1.println(Param_Buff_D[i] );
+        for(i=0;i<3;i++)Serial.println(Param_Buff_D[i] );
         SysState = lastSysState;
       }
       if( SysState ==13 ){  // 设定 Cell & Prism AdaptiveFlag
-        while( 2 > Serial1.available()){}
-        CellAdaptiveFlag = Serial1.read();
-        PrismAdaptiveFlag = Serial1.read();
+        while( 2 > Serial.available()){}
+        CellAdaptiveFlag = Serial.read();
+        PrismAdaptiveFlag = Serial.read();
         eeAddress = PIDAdaptiveFlagAddr+Cell*sizeof( CellAdaptiveFlag );
         EEPROM.put( eeAddress , CellAdaptiveFlag );
         eeAddress = PIDAdaptiveFlagAddr+Prism*sizeof(PrismAdaptiveFlag);
@@ -391,11 +391,11 @@ void loop() {
         SysState = lastSysState;
       }
       if( SysState ==14 ){ //设定Cell & Prism Gap值
-        while( 4> Serial1.available() ){}
-        CellGap =Serial1.read();
-        CellGap = ( CellGap<<8)|Serial1.read();
-        PrismGap = Serial1.read();
-        PrismGap = ( PrismGap<<8)|Serial1.read();
+        while( 4> Serial.available() ){}
+        CellGap =Serial.read();
+        CellGap = ( CellGap<<8)|Serial.read();
+        PrismGap = Serial.read();
+        PrismGap = ( PrismGap<<8)|Serial.read();
         eeAddress = PIDAdaptiveFlagAddr+Cell*sizeof( CellGap );
         EEPROM.put( eeAddress , CellGap ); 
         eeAddress += Prism*sizeof( CellGap );;
@@ -406,11 +406,11 @@ void loop() {
         SysState = lastSysState;        
       }
        if( SysState ==18 ){ //设定Cell & Prism ThreshHold 
-        while( 4> Serial1.available() ){}
-        CellThreshHold =Serial1.read();
-        CellThreshHold = ( CellThreshHold<<8)|Serial1.read();
-        PrismThreshHold = Serial1.read();
-        PrismThreshHold = ( PrismThreshHold<<8)|Serial1.read();
+        while( 4> Serial.available() ){}
+        CellThreshHold =Serial.read();
+        CellThreshHold = ( CellThreshHold<<8)|Serial.read();
+        PrismThreshHold = Serial.read();
+        PrismThreshHold = ( PrismThreshHold<<8)|Serial.read();
         CellThreshHoldDouble =CellThreshHold/double(ThreshHoldScale);
         PrismThreshHoldDouble = PrismThreshHold/double(ThreshHoldScale);
         eeAddress = PIDThreshHoldAddr + Cell*sizeof( CellThreshHold );
@@ -420,24 +420,24 @@ void loop() {
         SysState = lastSysState;
       }
       if( SysState == 42 ){      //               42：设定WaterBox的WaterBoxAdaptiveFlag
-        while( 1 > Serial1.available()){}
-        WaterBoxAdaptiveFlag = Serial1.read();
+        while( 1 > Serial.available()){}
+        WaterBoxAdaptiveFlag = Serial.read();
         eeAddress = PIDAdaptiveFlagAddr+WaterBox*sizeof( WaterBoxAdaptiveFlag );
         EEPROM.put( eeAddress , WaterBoxAdaptiveFlag );
         SysState = lastSysState; 
       }
       if( SysState == 44 ){       //              44：设定WaterBox的WaterBoxGap值
-        while( 2> Serial1.available() ){}
-        WaterBoxGap =Serial1.read();
-        WaterBoxGap = ( WaterBoxGap<<8)|Serial1.read();
+        while( 2> Serial.available() ){}
+        WaterBoxGap =Serial.read();
+        WaterBoxGap = ( WaterBoxGap<<8)|Serial.read();
         eeAddress = PIDAdaptiveFlagAddr+WaterBox*sizeof( CellGap );
         EEPROM.put( eeAddress , WaterBoxGap ); 
         SysState = lastSysState; 
       }
       if( SysState == 46 ){       //              46：设定WaterBoxThreshHold
-        while( 2> Serial1.available() ){}
-        WaterBoxThreshHold =Serial1.read();
-        WaterBoxThreshHold = ( WaterBoxThreshHold<<8)|Serial1.read();
+        while( 2> Serial.available() ){}
+        WaterBoxThreshHold =Serial.read();
+        WaterBoxThreshHold = ( WaterBoxThreshHold<<8)|Serial.read();
         WaterBoxThreshHoldDouble =WaterBoxThreshHold/double(ThreshHoldScale);
         eeAddress = PIDThreshHoldAddr + WaterBox*sizeof( WaterBoxThreshHold );
         EEPROM.put( eeAddress , WaterBoxThreshHold ); 
@@ -448,11 +448,11 @@ void loop() {
     if( SysState == 4 ){
         // 这里按之前的直接传ADC就可以
         ADC_Cell = MyAds1115.ReadAds1115(Cell);
-        Serial1.write( (uint8_t)((ADC_Cell&0xff00)>>8) );//不管强制类型转换成uint8还是int8，传输的结果都是相同的
-        Serial1.write( (uint8_t)( ADC_Cell&0x00ff ) );
+        Serial.write( (uint8_t)((ADC_Cell&0xff00)>>8) );//不管强制类型转换成uint8还是int8，传输的结果都是相同的
+        Serial.write( (uint8_t)( ADC_Cell&0x00ff ) );
         ADC_Prism = MyAds1115.ReadAds1115(Prism);
-        Serial1.write( (uint8_t)((ADC_Prism&0xff00)>>8) );//不管强制类型转换成uint8还是int8，传输的结果都是相同的
-        Serial1.write( (uint8_t)( ADC_Prism&0x00ff ) );
+        Serial.write( (uint8_t)((ADC_Prism&0xff00)>>8) );//不管强制类型转换成uint8还是int8，传输的结果都是相同的
+        Serial.write( (uint8_t)( ADC_Prism&0x00ff ) );
         SysState = lastSysState;
     }
     if( SysState == 5 ){
@@ -464,8 +464,8 @@ void loop() {
         EEPROM.get( eeAddress , CellAdaptiveFlag );
         eeAddress += Prism+sizeof( CellAdaptiveFlag );
         EEPROM.get( eeAddress , PrismAdaptiveFlag );
-        Serial1.write( CellAdaptiveFlag );
-        Serial1.write( PrismAdaptiveFlag );
+        Serial.write( CellAdaptiveFlag );
+        Serial.write( PrismAdaptiveFlag );
         SysState = lastSysState;
       }
       if(SysState==16){ //读Cell Prism Gap
@@ -473,10 +473,10 @@ void loop() {
          EEPROM.get( eeAddress , CellGap );
          eeAddress+= Prism*sizeof( CellGap );
          EEPROM.get( eeAddress, PrismGap );
-         Serial1.write( (uint8_t)((CellGap&0xff00)>>8) );
-         Serial1.write( (uint8_t)( CellGap&0x00ff)); 
-         Serial1.write( (uint8_t)((PrismGap&0xff00)>>8) );
-         Serial1.write( (uint8_t)( PrismGap&0x00ff)); 
+         Serial.write( (uint8_t)((CellGap&0xff00)>>8) );
+         Serial.write( (uint8_t)( CellGap&0x00ff)); 
+         Serial.write( (uint8_t)((PrismGap&0xff00)>>8) );
+         Serial.write( (uint8_t)( PrismGap&0x00ff)); 
          SysState = lastSysState;
       }
        if( SysState ==19 ){ //读Cell & Prism ThreshHold 
@@ -484,37 +484,37 @@ void loop() {
         EEPROM.get( eeAddress , CellThreshHold ); 
         eeAddress += Prism*sizeof( CellThreshHold );
         EEPROM.get( eeAddress , PrismThreshHold ); 
-        Serial1.write( (uint8_t)((CellThreshHold&0xff00)>>8) );
-        Serial1.write( (uint8_t)( CellThreshHold&0x00ff)); 
-        Serial1.write( (uint8_t)((PrismThreshHold&0xff00)>>8) );
-        Serial1.write( (uint8_t)( PrismThreshHold&0x00ff));        
+        Serial.write( (uint8_t)((CellThreshHold&0xff00)>>8) );
+        Serial.write( (uint8_t)( CellThreshHold&0x00ff)); 
+        Serial.write( (uint8_t)((PrismThreshHold&0xff00)>>8) );
+        Serial.write( (uint8_t)( PrismThreshHold&0x00ff));        
         SysState = lastSysState;
       }       
     if( SysState == 41 ){
         // 这里按之前的直接传ADC就可以
         ADC_WaterBox = MyAds1115.ReadAds1115(WaterBox);
-        Serial1.write( (uint8_t)((ADC_WaterBox&0xff00)>>8) );//不管强制类型转换成uint8还是int8，传输的结果都是相同的
-        Serial1.write( (uint8_t)( ADC_WaterBox&0x00ff ) );
+        Serial.write( (uint8_t)((ADC_WaterBox&0xff00)>>8) );//不管强制类型转换成uint8还是int8，传输的结果都是相同的
+        Serial.write( (uint8_t)( ADC_WaterBox&0x00ff ) );
         SysState = lastSysState;
     }
     if( SysState == 43 ){ //               43：读取WaterBox的WaterBoxAdaptiveFlag   
       eeAddress = PIDAdaptiveFlagAddr + WaterBox*sizeof( WaterBoxAdaptiveFlag );
       EEPROM.get( eeAddress , WaterBoxAdaptiveFlag );
-      Serial1.write( WaterBoxAdaptiveFlag );
+      Serial.write( WaterBoxAdaptiveFlag );
       SysState = lastSysState;
     }
     if(SysState== 45 ){ //               45：读取WaterBoxGap
        eeAddress = PIDGapAddr+WaterBox*sizeof( WaterBoxGap );
        EEPROM.get( eeAddress , WaterBoxGap );
-       Serial1.write( (uint8_t)((WaterBoxGap&0xff00)>>8) );
-       Serial1.write( (uint8_t)( WaterBoxGap&0x00ff)); 
+       Serial.write( (uint8_t)((WaterBoxGap&0xff00)>>8) );
+       Serial.write( (uint8_t)( WaterBoxGap&0x00ff)); 
        SysState = lastSysState;
     }
      if( SysState == 47 ){ //               47：读取WaterBoxThreshHold  
       eeAddress = PIDThreshHoldAddr + WaterBox*sizeof( WaterBoxThreshHold ) ;
       EEPROM.get( eeAddress , WaterBoxThreshHold ); 
-      Serial1.write( (uint8_t)((WaterBoxThreshHold&0xff00)>>8) );
-      Serial1.write( (uint8_t)( WaterBoxThreshHold&0x00ff));         
+      Serial.write( (uint8_t)((WaterBoxThreshHold&0xff00)>>8) );
+      Serial.write( (uint8_t)( WaterBoxThreshHold&0x00ff));         
       SysState = lastSysState;
     }  
     if( SysState == 48 ){    // 开启水箱控温
@@ -558,21 +558,31 @@ void loop() {
           PrismPID_Heating.Compute();
           PrismPID_Cooling.Compute();
           if( (CellSetPoint - CellPIDInput) >=CellThreshHoldDouble ){
-             CellTempDriver.Cooling( pwmScale*CellPIDOutput_Cooling  );
-          }else if( (CellSetPoint - CellPIDInput)<(-CellThreshHoldDouble)){
              CellTempDriver.Heating( pwmScale*CellPIDOutput_Heating  );
+          }else if( (CellSetPoint - CellPIDInput)<(-CellThreshHoldDouble)){
+             CellTempDriver.Cooling( pwmScale*CellPIDOutput_Cooling  );
           }
           if( (PrismSetPoint - PrismPIDInput) >= PrismThreshHoldDouble ){
-             PrismTempDriver.Cooling( pwmScale*PrismPIDOutput_Cooling  );
-          }else if( (PrismSetPoint - PrismPIDInput)<(-PrismThreshHoldDouble)){
              PrismTempDriver.Heating( pwmScale*PrismPIDOutput_Heating  );
+          }else if( (PrismSetPoint - PrismPIDInput)<(-PrismThreshHoldDouble)){
+             PrismTempDriver.Cooling( pwmScale*PrismPIDOutput_Cooling  );
           }
           #ifdef DEBUG
-          Serial1.print("CellSetPoint-CellPIDInput:");
-          Serial1.println( CellSetPoint - CellPIDInput );
-          Serial1.print( "ADC_Cell:");Serial1.println( ADC_Cell);
-          Serial1.print("CellPIDInput:");Serial1.println(CellPIDInput);
-          Serial1.print("CellSetPoint:");Serial1.println(CellSetPoint);
+          Serial.print("CellSetPoint-CellPIDInput:");
+          Serial.println( CellSetPoint - CellPIDInput );
+          Serial.print( "ADC_Cell:");Serial.println( ADC_Cell);
+          Serial.print("CellPIDInput:");Serial.println(CellPIDInput);
+          Serial.print("CellSetPoint:");Serial.println(CellSetPoint);
+          Serial.print("CellPIDOutput_Cooling:");Serial.println(CellPIDOutput_Cooling);
+          Serial.print("CellPIDOutput_Heating:");Serial.println(CellPIDOutput_Heating);
+                            
+          Serial.print("PrismSetPoint-PrismPIDInput:");
+          Serial.println( PrismSetPoint - PrismPIDInput );
+          Serial.print( "ADC_Prism:");Serial.println( ADC_Prism);
+          Serial.print("PrismPIDInput:");Serial.println(PrismPIDInput);
+          Serial.print("PrismSetPoint:");Serial.println(PrismSetPoint);
+          Serial.print("PrismPIDOutput_Cooling:");Serial.println(PrismPIDOutput_Cooling);
+          Serial.print("PrismPIDOutput_Heating:");Serial.println(PrismPIDOutput_Heating);
           #endif
     }
     if( SysState == 7 ){  // Cell单独控温
@@ -590,9 +600,9 @@ void loop() {
           CellPID_Heating.Compute();
           CellPID_Cooling.Compute();
           if( (CellSetPoint - CellPIDInput) >=CellThreshHoldDouble ){
-             CellTempDriver.Cooling( pwmScale*CellPIDOutput_Cooling  );
+             CellTempDriver.Heating( pwmScale*CellPIDOutput_Heating  );
           }else if( (CellSetPoint - CellPIDInput)<(-CellThreshHoldDouble )){
-            CellTempDriver.Heating( pwmScale*CellPIDOutput_Heating  );
+            CellTempDriver.Cooling( pwmScale*CellPIDOutput_Cooling  );
           }
     }
     if( SysState == 8 ){   // Prsim单独控温
@@ -610,9 +620,9 @@ void loop() {
           PrismPID_Heating.Compute();
           PrismPID_Cooling.Compute();
           if( (PrismSetPoint - PrismPIDInput) >=PrismThreshHoldDouble){
-             PrismTempDriver.Cooling( pwmScale*PrismPIDOutput_Cooling  );
+             PrismTempDriver.Heating( pwmScale*PrismPIDOutput_Heating  );
           }else if( (PrismSetPoint - PrismPIDInput)<(-PrismThreshHoldDouble)){
-            PrismTempDriver.Heating( pwmScale*PrismPIDOutput_Heating  );
+            PrismTempDriver.Cooling( pwmScale*PrismPIDOutput_Cooling  );
           }  
     }
     // 单次运行状态---关闭模块
@@ -647,11 +657,30 @@ void WaterBoxTempReg( bool flag ){
      }          
     WaterBoxPID_Heating.Compute();
     WaterBoxPID_Cooling.Compute();
+     #ifdef DEBUG
+      Serial.println("WaterBoxThreshHoldDouble");
+      Serial.println(WaterBoxThreshHoldDouble);
+     #endif
     if( (WaterBoxSetPoint - WaterBoxPIDInput) >=WaterBoxThreshHoldDouble){
        WaterBoxTempDriver.Cooling( pwmScale*WaterBoxPIDOutput_Cooling  );
+       #ifdef DEBUG
+       Serial.println("Cooling");
+       #endif
     }else if( (WaterBoxSetPoint - WaterBoxPIDInput)<(-WaterBoxThreshHoldDouble)){
        WaterBoxTempDriver.Heating( pwmScale*WaterBoxPIDOutput_Heating  );
-    } 
+       #ifdef DEBUG
+        Serial.println("Heating");
+       #endif
+    }
+    #ifdef DEBUG
+      Serial.print("WaterBoxSetPoint-WaterBoxPIDInput:");
+      Serial.println( WaterBoxSetPoint - WaterBoxPIDInput );
+      Serial.print( "ADC_WaterBox:");Serial.println( ADC_WaterBox);
+      Serial.print("WaterBoxPIDInput:");Serial.println(WaterBoxPIDInput);
+      Serial.print("WaterBoxSetPoint:");Serial.println(WaterBoxSetPoint);
+      Serial.print("WaterBoxPIDOutput_Cooling:");Serial.println(WaterBoxPIDOutput_Cooling);
+      Serial.print("WaterBoxPIDOutput_Heating:");Serial.println(WaterBoxPIDOutput_Heating);
+    #endif
   }else{
     WaterBoxTempDriver.Idle();  
   }   

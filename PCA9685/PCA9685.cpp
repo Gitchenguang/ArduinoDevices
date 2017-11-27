@@ -22,7 +22,7 @@ void PCA9685::PCA9685Init(){
 	
 	RegArray[Mode1Reg] = 0x20; //Restart disable; Internal clock; Normal mode:Sleep disable;AI enable; subaddr diable; all-call addr disable;
 	RegArray[Mode2Reg] = 0x06; // Output change on ACK; OUTDRV:totem;
-	RegArray[Prescalar] = (uint8_t)(25000000.0/(4096.0*Freq)); // 设置频率为500Hz
+	RegArray[Prescalar] = (uint8_t)(25000000.0/(4096.0*Freq*1.1)); // 设置频率为500Hz
 
 	Wire.beginTransmission( Address );
 	Wire.write( Mode1Reg );
@@ -31,17 +31,13 @@ void PCA9685::PCA9685Init(){
 	Wire.endTransmission();
 
 	// 单次写64个Reg不知为啥写不了，可能是Arduino Wire 库函数的原因
-	for( i=0; i<16; i++ ){		
-		Wire.beginTransmission( Address );
-		Wire.write( LedOffset + i*LedSpace+ LedOn_L );
-		Wire.write( RegArray[ LedOffset + i*LedSpace+ LedOn_L ] );
-		Wire.write( RegArray[ LedOffset + i*LedSpace + LedOn_H] );
-		Wire.write( RegArray[ LedOffset + i*LedSpace + LedOff_L] );
-		Wire.write( RegArray[ LedOffset + i*LedSpace + LedOff_H] );
-		Wire.endTransmission();
+	for( i=0; i<16; i++ ){	
+		WriteReg( LedOffset + i*LedSpace+ LedOn_L , RegArray[ LedOffset + i*LedSpace+ LedOn_L ] );
+		WriteReg( LedOffset + i*LedSpace + LedOn_H , RegArray[ LedOffset + i*LedSpace + LedOn_H] );
+		WriteReg( LedOffset + i*LedSpace + LedOff_L , RegArray[ LedOffset + i*LedSpace + LedOff_L] );
+		WriteReg( LedOffset + i*LedSpace + LedOff_H , RegArray[ LedOffset + i*LedSpace + LedOff_H] );
 	}
-
-	RegArray[Mode1Reg] = 0x30; // 进入睡眠状态以更改频率
+	RegArray[Mode1Reg] = 0x30; // 进入睡眠状态以更改频率	
 	WriteReg(Mode1Reg,RegArray[Mode1Reg]);
 
 	WriteReg(Prescalar,RegArray[Prescalar]);
@@ -88,16 +84,21 @@ void PCA9685::WriteLed( uint8_t LedChannel , uint16_t LedOn , uint16_t LedOff ){
 	uint8_t i;
 	uint8_t LedIndex = LedOffset + LedChannel*LedSpace;
 	RegArray[ LedIndex + LedOn_L ] = (uint8_t)(LedOn&0x00ff);
-	RegArray[ LedIndex + LedOn_H ] = (uint8_t)((LedOn&0xff00)>>8);	
+	RegArray[ LedIndex + LedOn_H ] = (uint8_t)((LedOn&0x0f00)>>8);	
 	RegArray[ LedIndex + LedOff_L ] = (uint8_t)(LedOff&0x00ff);
-	RegArray[ LedIndex + LedOff_H ] = (uint8_t)((LedOff&0xff00)>>8);	
+	RegArray[ LedIndex + LedOff_H ] = (uint8_t)((LedOff&0x0f00)>>8);
 	
 	Wire.beginTransmission( Address );
 	Wire.write( LedIndex );
-	for( i = LedIndex + LedOn_L;  i<(LedIndex+LedSpace); i++){
-		Wire.write( RegArray[i]);
-	}
+	Wire.write( RegArray[ LedIndex + LedOn_L ] );
+	Wire.write( RegArray[ LedIndex + LedOn_H ] );
+	Wire.write( RegArray[ LedIndex + LedOff_L ] );
+	Wire.write( RegArray[ LedIndex + LedOff_H ] );
 	Wire.endTransmission();		
+//	WriteReg( LedIndex+ LedOn_L , RegArray[ LedIndex+ LedOn_L ] );
+//	WriteReg( LedIndex + LedOn_H , RegArray[ LedIndex + LedOn_H ] );
+//	WriteReg( LedIndex + LedOff_L , RegArray[ LedIndex + LedOff_L ] );
+//	WriteReg( LedIndex + LedOff_H , RegArray[ LedIndex + LedOff_H ] );	
 }
 uint16_t PCA9685::ReadLed( uint8_t LedChannel , bool Status ){
 	uint8_t LedIndex = LedOffset + LedChannel*LedSpace;
@@ -109,7 +110,7 @@ uint16_t PCA9685::ReadLed( uint8_t LedChannel , bool Status ){
 }
 
 void PCA9685::SetFreq( double f ){
-	Freq = f;
+	Freq = f*1.1; //修正频率，正常计算得到的频率为实际频率的0.9倍，这里修正过来
 	RegArray[Prescalar] = (uint8_t)(25000000.0/(4096.0*Freq)); // 设置频率为500Hz
 	uint8_t restartflag = 0;
     // 进入睡眠状态以更改频率
@@ -142,12 +143,19 @@ void PCA9685::SetLedLow( uint8_t LedChannel ){
 	uint8_t LedIndex = LedOffset + LedChannel*LedSpace;
 	RegArray[ LedIndex + LedOn_H ] = RegArray[ LedIndex + LedOn_H ] & (~LedFullOnMask) ;
 	RegArray[ LedIndex + LedOff_H ] = RegArray[ LedIndex + LedOff_H ] | LedFullOffMask ;
+	
 	Wire.beginTransmission( Address );
 	Wire.write( LedIndex );
-	for( i = LedIndex + LedOn_L;  i<(LedIndex+LedSpace); i++){
-		Wire.write( RegArray[i]);
-	}
+	Wire.write( RegArray[ LedIndex + LedOn_L ] );
+	Wire.write( RegArray[ LedIndex + LedOn_H ] );
+	Wire.write( RegArray[ LedIndex + LedOff_L ] );
+	Wire.write( RegArray[ LedIndex + LedOff_H ] );
 	Wire.endTransmission();		
+	
+	//WriteReg( LedIndex+ LedOn_L , RegArray[ LedIndex+ LedOn_L ] );
+	//WriteReg( LedIndex + LedOn_H , RegArray[ LedIndex + LedOn_H] );
+	//WriteReg( LedIndex + LedOff_L , RegArray[ LedIndex + LedOff_L] );
+	//WriteReg( LedIndex + LedOff_H , RegArray[ LedIndex + LedOff_H] );	
 
 }
 
@@ -158,11 +166,15 @@ void PCA9685::SetLedHigh( uint8_t LedChannel ){
 	RegArray[ LedIndex + LedOff_H ] = RegArray[ LedIndex + LedOff_H ] & (~LedFullOffMask) ;
 	Wire.beginTransmission( Address );
 	Wire.write( LedIndex );
-	for( i = LedIndex + LedOn_L;  i<(LedIndex+LedSpace); i++){
-		Wire.write( RegArray[i]);
-	}
-	Wire.endTransmission();		
-
+	Wire.write( RegArray[ LedIndex + LedOn_L ] );
+	Wire.write( RegArray[ LedIndex + LedOn_H ] );
+	Wire.write( RegArray[ LedIndex + LedOff_L ] );
+	Wire.write( RegArray[ LedIndex + LedOff_H ] );
+	Wire.endTransmission();	
+	//WriteReg( LedIndex+ LedOn_L , RegArray[ LedIndex+ LedOn_L ] );
+	//WriteReg( LedIndex + LedOn_H , RegArray[ LedIndex + LedOn_H] );
+	//WriteReg( LedIndex + LedOff_L , RegArray[ LedIndex + LedOff_L] );
+	//WriteReg( LedIndex + LedOff_H , RegArray[ LedIndex + LedOff_H] );	
 }
 
 
